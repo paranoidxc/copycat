@@ -5,13 +5,13 @@
 ## grpc 微服务
 
 - user:8080
-- Article:8480
+- article:8480
 - like
 
 ## Api/BFF层 微服务
 
 - article:8980
-- Applet:8888
+- applet:8888
 
 ##  使用的其他服务
 
@@ -21,9 +21,9 @@
 
 - etcd:2479
 
-- Kafka:9092
+- kafka:9092
 
-- Elasticsearch
+- elasticsearch
 
 - canal:11111
 
