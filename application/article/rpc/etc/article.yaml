@@ -1,0 +1,15 @@
+Name: article.rpc
+ListenOn: 0.0.0.0:8480
+Etcd:
+  Hosts:
+  - 127.0.0.1:2479
+  Key: article.rpc
+DataSource: root:fucking@tcp(127.0.0.1:13306)/beyond_article?parseTime=true&loc=Local
+CacheRedis:
+  - Host: 127.0.0.1:6379
+    Pass:
+    Type: node
+BizRedis:
+  Host: 127.0.0.1:6379
+  Pass:
+  Type: node

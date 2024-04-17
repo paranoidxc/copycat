@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  canal-server:
+    image: canal/canal-server
+    container_name: canal-server
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+    ports:
+      - 11111:11111
+    environment:
+      - canal.auto.scan=false
+      - canal.instance.master.address=host.docker.internal:13306
+      - canal.instance.dbUsername=canal
+      - canal.instance.dbPassword=canal
+      - canal.serverMode=kafka
+      - kafka.bootstrap.servers=host.docker.internal:9092
+      - canal.instance.filter.regex=.*\\..*
+      - canal.destinations=test
+      - canal.instance.connectionCharset=UTF-8
+      - canal.instance.tsdb.enable=true
+      - canal.mq.topic=topic-like-count
+      - canal.mq.partitionsNum=1
+      - canal.mq.partitionHash=beyond_like.like_count:id
