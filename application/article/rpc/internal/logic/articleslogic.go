@@ -176,6 +176,16 @@ func (l *ArticlesLogic) Articles(in *pb.ArticlesRequest) (*pb.ArticlesResponse, 
 // 从 redis 取数据
 func (l *ArticlesLogic) cacheArticles(ctx context.Context, uid, cursor, ps int64, sortType int32) ([]int64, error) {
 	key := articlesKey(uid, sortType)
+	b, err := l.svcCtx.BizRedis.ExistsCtx(ctx, key)
+	if err != nil {
+		logx.Errorf("ExistsCtx key: %s error: %v", key, err)
+	}
+	if b {
+		err = l.svcCtx.BizRedis.ExpireCtx(ctx, key, articlesExpire)
+		if err != nil {
+			logx.Errorf("ExpireCtx key: %s error: %v", key, err)
+		}
+	}
 	pairs, err := l.svcCtx.BizRedis.ZrevrangebyscoreWithScoresAndLimitCtx(ctx, key, 0, cursor, 0, int(ps))
 	if err != nil {
 		logx.Errorf("ZrevrangebyscoreWithScoresAndLimit key: %s error: %v", key, err)
