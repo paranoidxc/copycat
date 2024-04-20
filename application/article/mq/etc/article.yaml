@@ -26,7 +26,8 @@ Es:
   Addresses:
     - http://localhost:9200/
   Username: elastic
-  Password: HLmVfh-0Pr*YX5x4JSFl
+  Password: GUUblVJifbsBSsKwqJlP
+  APIKey: ExySfJFkTrW1VkOfc5L_Lg
 Prometheus:
   Host: 0.0.0.0
   Port: 9101

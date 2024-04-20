@@ -2,13 +2,10 @@ package logic
 
 import (
 	"beyond/application/article/api/internal/code"
-	"beyond/application/article/rpc/pb"
-	"beyond/pkg/xcode"
-	"context"
-	"encoding/json"
-
 	"beyond/application/article/api/internal/svc"
 	"beyond/application/article/api/internal/types"
+	"beyond/application/article/rpc/pb"
+	"context"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -39,11 +36,14 @@ func (l *PublishLogic) Publish(req *types.PublishRequest) (resp *types.PublishRe
 	if len(req.Cover) == 0 {
 		return nil, code.ArticleCoverEmpty
 	}
-	userId, err := l.ctx.Value("userId").(json.Number).Int64()
-	if err != nil {
-		logx.Errorf("l.ctx.Value error: %v", err)
-		return nil, xcode.NoLogin
-	}
+	/*
+		userId, err := l.ctx.Value("userId").(json.Number).Int64()
+		if err != nil {
+			logx.Errorf("l.ctx.Value error: %v", err)
+			return nil, xcode.NoLogin
+		}
+	*/
+	userId := int64(1)
 
 	pret, err := l.svcCtx.ArticleRPC.Publish(l.ctx, &pb.PublishRequest{
 		UserId:      userId,

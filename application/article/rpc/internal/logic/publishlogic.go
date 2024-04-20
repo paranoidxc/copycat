@@ -5,7 +5,6 @@ import (
 	"beyond/application/article/rpc/internal/model"
 	"beyond/application/article/rpc/internal/types"
 	"context"
-	"strconv"
 	"time"
 
 	"beyond/application/article/rpc/internal/svc"
@@ -60,27 +59,27 @@ func (l *PublishLogic) Publish(in *pb.PublishRequest) (*pb.PublishResponse, erro
 		return nil, err
 	}
 
-	var (
-		articleIdStr   = strconv.FormatInt(articleId, 10)
-		publishTimeKey = articlesKey(in.UserId, types.SortPublishTime)
-		likeNumKey     = articlesKey(in.UserId, types.SortLikeCount)
-	)
-
-	b, _ := l.svcCtx.BizRedis.ExistsCtx(l.ctx, publishTimeKey)
-	if b {
-		_, err = l.svcCtx.BizRedis.ZaddCtx(l.ctx, publishTimeKey, time.Now().Unix(), articleIdStr)
-		if err != nil {
-			logx.Errorf("ZaddCtx req: %v error: %v", in, err)
-		}
-	}
-
-	b, _ = l.svcCtx.BizRedis.ExistsCtx(l.ctx, likeNumKey)
-	if b {
-		_, err = l.svcCtx.BizRedis.ZaddCtx(l.ctx, likeNumKey, 0, articleIdStr)
-		if err != nil {
-			logx.Errorf("ZaddCtx req: %v error: %v", in, err)
-		}
-	}
+	///*var (
+	//	articleIdStr   = strconv.FormatInt(articleId, 10)
+	//	publishTimeKey = articlesKey(in.UserId, types.SortPublishTime)
+	//	likeNumKey     = articlesKey(in.UserId, types.SortLikeCount)
+	//)
+	//
+	//b, _ := l.svcCtx.BizRedis.ExistsCtx(l.ctx, publishTimeKey)
+	//if b {
+	//	_, err = l.svcCtx.BizRedis.ZaddCtx(l.ctx, publishTimeKey, time.Now().Unix(), articleIdStr)
+	//	if err != nil {
+	//		logx.Errorf("ZaddCtx req: %v error: %v", in, err)
+	//	}
+	//}
+	//
+	//b, _ = l.svcCtx.BizRedis.ExistsCtx(l.ctx, likeNumKey)
+	//if b {
+	//	_, err = l.svcCtx.BizRedis.ZaddCtx(l.ctx, likeNumKey, 0, articleIdStr)
+	//	if err != nil {
+	//		logx.Errorf("ZaddCtx req: %v error: %v", in, err)
+	//	}
+	//}*/
 
 	return &pb.PublishResponse{ArticleId: articleId}, nil
 }

@@ -39,6 +39,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 			Addresses: c.Es.Addresses,
 			Username:  c.Es.Username,
 			Password:  c.Es.Password,
+			//APIKey:    c.Es.APIKey,
 		}),
 	}
 }

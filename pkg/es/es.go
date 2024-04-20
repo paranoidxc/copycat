@@ -20,6 +20,7 @@ type (
 		Addresses  []string
 		Username   string
 		Password   string
+		APIKey     string
 		MaxRetries int
 	}
 
@@ -72,9 +73,10 @@ func (t *esTransport) RoundTrip(req *http.Request) (resp *http.Response, err err
 
 func NewEs(conf *Config) (*Es, error) {
 	c := es8.Config{
-		Addresses:  conf.Addresses,
-		Username:   conf.Username,
-		Password:   conf.Password,
+		Addresses: conf.Addresses,
+		Username:  conf.Username,
+		Password:  conf.Password,
+		//APIKey:     conf.APIKey,
 		MaxRetries: conf.MaxRetries,
 		Transport:  &esTransport{},
 	}

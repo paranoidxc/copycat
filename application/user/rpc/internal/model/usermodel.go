@@ -33,13 +33,11 @@ func (m *customUserModel) FindByMobile(ctx context.Context, mobile string) (*Use
 	var user User
 	err := m.QueryRowNoCacheCtx(ctx, &user, fmt.Sprintf("select %s from %s where `mobile` = ? limit 1", userRows, m.table), mobile)
 	if err != nil {
-		fmt.Printf("err: %+v\n", err)
 		if err == sqlx.ErrNotFound {
 			return nil, nil
 		}
 		return nil, err
 	}
-	fmt.Printf("%+v\n", user)
 
 	return &user, nil
 }

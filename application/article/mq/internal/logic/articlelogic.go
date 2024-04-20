@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -94,7 +95,7 @@ func (l *ArticleLogic) articleOperate(msg *types.CanalArticleMsg) error {
 			return err
 		}
 
-		esData = append(esData, &types.ArticleEsMsg{
+		a := &types.ArticleEsMsg{
 			ArticleId:   articleId,
 			AuthorId:    authorId,
 			AuthorName:  u.Username,
@@ -103,11 +104,20 @@ func (l *ArticleLogic) articleOperate(msg *types.CanalArticleMsg) error {
 			Description: d.Description,
 			Status:      status,
 			LikeNum:     likNum,
-		})
+		}
+		fmt.Println("ArticleEsMsg", *a)
+
+		esData = append(esData, a)
 	}
+	fmt.Println("========toES")
+	fmt.Println("-----", len(esData), "------")
+
 	err := l.BatchUpSertToEs(l.ctx, esData)
 	if err != nil {
+		fmt.Println("========toES ERR")
 		l.Logger.Errorf("BatchUpSertToEs data: %v error: %v", esData, err)
+	} else {
+		fmt.Println("========toES OK")
 	}
 
 	return err
@@ -119,13 +129,20 @@ func (l *ArticleLogic) BatchUpSertToEs(ctx context.Context, data []*types.Articl
 	}
 
 	bi, err := esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
-		Client: l.svcCtx.Es.Client,
-		Index:  "article-index",
+		Client:        l.svcCtx.Es.Client,
+		Index:         "article-index",
+		NumWorkers:    3,                // The number of worker goroutines
+		FlushBytes:    102400,           // The flush threshold in bytes
+		FlushInterval: 30 * time.Second, // The periodic flush interval
+		OnError: func(ctx context.Context, err error) {
+			logx.Infof("BulkIndexerConfig Unexpected error: %s", err)
+		},
 	})
 	if err != nil {
 		return err
 	}
 
+	start := time.Now().UTC()
 	for _, d := range data {
 		v, err := json.Marshal(d)
 		if err != nil {
@@ -135,16 +152,35 @@ func (l *ArticleLogic) BatchUpSertToEs(ctx context.Context, data []*types.Articl
 		payload := fmt.Sprintf(`{"doc":%s,"doc_as_upsert":true}`, string(v))
 		err = bi.Add(ctx, esutil.BulkIndexerItem{
 			Action:     "update",
+			Index:      "article-index",
 			DocumentID: fmt.Sprintf("%d", d.ArticleId),
 			Body:       strings.NewReader(payload),
 			OnSuccess: func(ctx context.Context, item esutil.BulkIndexerItem, item2 esutil.BulkIndexerResponseItem) {
+				fmt.Println("OnSuccess")
 			},
 			OnFailure: func(ctx context.Context, item esutil.BulkIndexerItem, item2 esutil.BulkIndexerResponseItem, err error) {
+				fmt.Println("OnFailure")
 			},
 		})
 		if err != nil {
 			return err
 		}
+
+		biStats := bi.Stats()
+		// Report the results: number of indexed docs, number of errors, duration, indexing rate
+		//
+		log.Println(strings.Repeat("-", 80))
+		dur := time.Since(start)
+		if biStats.NumFailed > 0 {
+			log.Printf("[YhkbElReceiver.BulkUpsertKnowledge]总数据[%d]行，其中失败[%d]， 耗时 %v (速度：%d docs/秒)\n", biStats.NumAdded, biStats.NumFailed,
+				dur.Truncate(time.Millisecond), int64(1000.0/float64(dur/time.Millisecond)*float64(biStats.NumFlushed)),
+			)
+		} else {
+			log.Printf("[YhkbElReceiver.BulkUpsertKnowledge]处理数据[%d]行，耗时%v (速度：%d docs/秒)\n", biStats.NumFlushed, dur.Truncate(time.Millisecond),
+				int64(1000.0/float64(dur/time.Millisecond)*float64(biStats.NumFlushed)),
+			)
+		}
+		log.Println(strings.Repeat("-", 80))
 	}
 
 	return bi.Close(ctx)

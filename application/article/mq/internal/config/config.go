@@ -19,6 +19,7 @@ type Config struct {
 		Addresses []string
 		Username  string
 		Password  string
+		APIKey    string
 	}
 	UserRPC zrpc.RpcClientConf
 }
